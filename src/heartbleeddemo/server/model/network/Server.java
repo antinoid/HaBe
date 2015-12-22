@@ -1,5 +1,6 @@
 package heartbleeddemo.server.model.network;
 
+import heartbleeddemo.server.model.ram.VirtualRam;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Observable;
@@ -14,8 +15,10 @@ public class Server extends Observable implements Runnable {
     private Connection con;
     private ServerSocket socket;
     private boolean isRunning = false;
+    private VirtualRam ram;
     
-    public Server(int port, Observer obs) throws Exception {
+    public Server(int port, Observer obs, VirtualRam ram) throws Exception {
+        this.ram = ram;
         addObserver(obs);
         try {
             socket = new ServerSocket(port);
@@ -39,6 +42,10 @@ public class Server extends Observable implements Runnable {
         }
     }
     
+    public void send(String msg) {
+        con.write(msg.getBytes());
+    }
+    
     @Override
     public void run() {
         
@@ -46,7 +53,7 @@ public class Server extends Observable implements Runnable {
             try {
                 Socket client = socket.accept();
                 notifyView("new client connected");
-                con = new Connection(client);
+                con = new Connection(client, ram);
                 con.start();
             } catch (Exception e) {
             }

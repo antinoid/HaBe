@@ -1,7 +1,10 @@
 package heartbleeddemo.server.model.ram;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Random;
 
 /**
  *
@@ -9,56 +12,44 @@ import java.nio.file.Path;
  */
 public class VirtualRam {
 
-    private static final int RAM_SIZE = 2000000; // 2 MB
-    private static byte[] RAM = new byte[RAM_SIZE];
-    private String addressPointer = "null";
+    private static final int TEXTFILE_OFFSET = 0x10000; // 64kB offset for textfile
+    private byte[] data;
+    private int networkDataPointer = 0x0;
     
-    public VirtualRam() {
-        
-        //Path path = Paths.get("D:\\Java\\test.txt");
+    public VirtualRam(int size) {
+        data = new byte[size];
     }
     
-    public void loadDataFromDisc(Path path) {
+    /**
+     * Store file in Virtual Ram
+     * max filesize is 64 kB
+     * @param file 
+     */
+    public void storeTextFile(File file) {
+        
+        InputStream input = null;
+        byte[] buffer = new byte[0x10000];
         try {
-            byte[] data = Files.readAllBytes(path);
-            //write(data);
+            input = new FileInputStream(file);
+            int bytesRead = input.read(buffer);
+            System.arraycopy(buffer, 0, data, TEXTFILE_OFFSET, bytesRead);
+            input.close();
         } catch (Exception e) {
+        } finally {
+            try {
+                if (input != null)
+                    input.close(); 
+            } catch (Exception e) {
+            }
         }
     }
     
-    public void getData(){
-        
+    public void storeNetworkData(byte[] networkData) {
+        networkDataPointer = 0x10000 - networkData.length - 10;
+        System.arraycopy(networkData, 0, data, networkDataPointer, networkData.length);
     }
     
-    private boolean write(byte[] data, int address, boolean isLeetHackingPackage) {
-        addressPointer = fakeMalloc(data.length, address);
-        
-        // in C:
-        // if (ptr != null)
-        if (addressPointer.equals("null")) {
-            System.out.println("RAM Error: couldnt write data");
-            return false;
-        }
-        try {
-            System.arraycopy(data, 0, RAM, Integer.valueOf(addressPointer), data.length);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-    }
-    
-    private byte[] read(int address, int length) {
-        byte[] data = null;
-        return data;
-    }
-    
-    // real malloc would be without address of course :)
-    private String fakeMalloc(int size, int address) {
-        return Integer.toHexString(address);
-    }
-    
-    // not used, but could be implemented
-    private void free(int address) {
-        
+    public byte[] getNetworkData(int length) {
+        return Arrays.copyOfRange(data, networkDataPointer, networkDataPointer + length);
     }
 }

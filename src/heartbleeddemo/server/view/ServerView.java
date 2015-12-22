@@ -5,10 +5,12 @@ import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Insets;
 import java.awt.event.ActionListener;
+import java.io.File;
 import java.util.Observable;
 import java.util.Observer;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -25,6 +27,7 @@ public class ServerView extends JFrame implements Observer {
     private JPanel panel;
     private JLabel portLabel;
     private JTextField portTextField;
+    private JButton testButton;
     private JButton startButton;
     private JButton stopButton;
     private JButton loadButton;
@@ -51,6 +54,15 @@ public class ServerView extends JFrame implements Observer {
         }
     }
     
+    public File getFile() {
+        JFileChooser fc = new JFileChooser();
+        
+        if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+            return fc.getSelectedFile();
+        }
+        return null;
+    }
+    
     public void println(String msg) {
         statusTextArea.append(msg + "\n");
     }
@@ -71,10 +83,15 @@ public class ServerView extends JFrame implements Observer {
         portLabel = new JLabel("Port:");
         portPanel.add(portLabel);
         portTextField = new JTextField("16222");
+        portTextField.setColumns(5);
+        portTextField.setHorizontalAlignment(JTextField.CENTER);
         portPanel.add(portTextField);
         panel.add(portPanel);
         
         JPanel buttonPanel = new JPanel();
+        testButton = new JButton("test");
+        testButton.addActionListener(listener);
+        buttonPanel.add(testButton);
         startButton = new JButton("start Server");
         startButton.addActionListener(listener);
         buttonPanel.add(startButton);
